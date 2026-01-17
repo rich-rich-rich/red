@@ -47,6 +47,18 @@
 <script src="camera_utils.js"></script>  
   
 <script>  
+// 全局变量预声明
+let scene, camera, renderer, cardGroup, cards = [];
+let lightPoint, starField, particleSystem;
+let raycaster = new THREE.Raycaster();
+let isGrabbing = false, selectedCard = null, isAnimating = false;
+let rotationSpeed = 0.003, targetSpeed = 0.003;
+
+const particleCount = 600;
+const particleGeometry = new THREE.BufferGeometry();
+const particlePositions = new Float32Array(particleCount * 3);
+const particleLifespans = new Float32Array(particleCount);
+
 const tarotData = [
     { name: "湘江战役", sub: "雄关漫道真如铁，而今迈步从头越——《忆秦娥·娄山关》", desc: "湘江血雨虽寒，然星火不灭。后辈若逢困厄，当学此役之后，反思前路，校准方向，莫惧道阻且长。就算遇到像湘江战役这样的低谷和困难，反思后重新出发，直面挑战。" },
     { name: "遵义会议", sub: "“东方欲晓，莫道君行早”——《清平乐·会昌》", desc: "遵义城头，风雨虽急，然灯塔已明，后辈若迷方向，当循此智，而后明辨是非，笃定前行，莫失航标之光。“东方欲晓，莫道君行早”出自毛泽东的《清平乐·会昌》，意思是东方快要亮了，别说你出发得早。遵义会议就像长征路上的“东方欲晓”，为红军指明了方向，后辈若在人生中感到迷茫，也该像我们那时一样，尽早认清方向、坚定前行。" },
@@ -67,14 +79,8 @@ const tarotData = [
     { name: "青藏铁路", sub: "“众人拾柴火焰高”", desc: "我们这些修青藏铁路的人，冻土上打桩难，工程师和工人围在一起商量；高寒缺氧，大家轮班作业、互相鼓劲。常想着过草地的前辈们。他们在沼泽里互相拉拽，才没让一个人掉队，那股“众人拾柴火焰高”的劲儿，我们修铁路时也记在心里。是前辈们用生命教会我们，再难的事，一群人抱成团就没有办不成的。" },
     { name: "奥运会", sub: "“人心齐，泰山移”", desc: "我们这些参加过奥运会的人，站在赛场上，身后有团队的支持。常常想起过草地的前辈们。他们啃着草根也要跟着队伍走，靠的就是“人心齐，泰山移”的信念。不管是当年过草地还是现在拼奥运，个人的力量再强，也离不开身边人的托举。" },
     { name: "共产党成立100周年", sub: "星火已燎原，百年基业固", desc: "吴起镇会师时，我们终于摆脱了追兵，在窑洞前点燃篝火，想着革命的火种总算保住了。如今共产党成立100周年，那真是像看到篝火燎原成了漫天星火！当年我们在吴起镇盼着家能安稳，现在这百年大家如此强盛，我们这些“老骨头”要是能亲眼看看，怕是要激动得掉泪。这盛世，比我们当年在篝火边聊的所有憧憬都要耀眼。" },
-    { name: "长征胜利90周年", sub: "长征九秩开新境，马年盛世入画屏", desc: "会宁会师那天，我们把红旗插在城头，风沙里的笑容比太阳还亮，这一路的脚印总算连成了路。如今九十年过去，心里的骄傲比山还重！这“新境”里，有你们桌上的热饭，窗外的高楼，路上的车水马龙，都是我们当年做梦都想看到的样子。你们好好守着这“新境”，过好每一天，让这“画屏”一直鲜亮下去，就是我们最盼的事。" }
+    { name: "长征胜利90周年", sub: "长征九秩开新境，马年盛世入画屏", desc: "会宁会师那天，我们把红旗插在城头，风沙里的笑容比太阳还亮，这一路的脚印总算连成了路。如今九十年过去，心里的骄傲比山还重！这“新境”里，有你们桌上的热饭，窗外的高楼，路上的车水马龙，都是我们当年做梦都想看到的样子。你们好好守着这“新境”，过好每一天，让这“画屏”一直鲜亮下去，就是最盼的事。" }
 ];
-
-let scene, camera, renderer, cardGroup, cards = [];
-let lightPoint, particleSystem, starField;
-let raycaster = new THREE.Raycaster();
-let isGrabbing = false, selectedCard = null, isAnimating = false;
-let grabCounter = 0, rotationSpeed = 0.003, targetSpeed = 0.003;
 
 function loadTexture(url) {
     const loader = new THREE.TextureLoader();
@@ -101,7 +107,10 @@ async function init() {
     scene.add(new THREE.AmbientLight(0xffffff, 1.2));
 
     await initHandTracking();
-    gsap.to('#loading-screen', { opacity: 0, duration: 1.5, onComplete: () => document.getElementById('loading-screen').remove() });
+    gsap.to('#loading-screen', { opacity: 0, duration: 1, onComplete: () => {
+        const screen = document.getElementById('loading-screen');
+        if (screen) screen.remove();
+    }});
     animate();
 }
 
@@ -115,19 +124,16 @@ function createTarotRing() {
     tarotData.forEach((data, i) => {
         const angle = (i / tarotData.length) * Math.PI * 2;
         const mats = [
-            new THREE.MeshStandardMaterial({ color: 0x000 }),
-            new THREE.MeshStandardMaterial({ color: 0x000 }),
-            new THREE.MeshStandardMaterial({ color: 0x000 }),
-            new THREE.MeshStandardMaterial({ color: 0x000 }),
+            new THREE.MeshStandardMaterial({ color: 0x111 }),
+            new THREE.MeshStandardMaterial({ color: 0x111 }),
+            new THREE.MeshStandardMaterial({ color: 0x111 }),
+            new THREE.MeshStandardMaterial({ color: 0x111 }),
             new THREE.MeshStandardMaterial({ map: loadTexture(data.name) }), // 正面
-            new THREE.MeshStandardMaterial({ map: backTex }) // 背面
+            new THREE.MeshStandardMaterial({ map: backTex })               // 背面
         ];
         const card = new THREE.Mesh(cardGeo, mats);
         card.position.set(Math.sin(angle) * radius, 0, Math.cos(angle) * radius);
-        
-        // 关键逻辑：让卡牌背面朝向原点（你的眼睛）
-        card.lookAt(0, 0, 0); 
-        // 此时正面朝外，背面朝内，符合“看光”之前的状态
+        card.lookAt(0, 0, 0); // 背面朝向原点
         
         card.userData = { angle: angle, info: data };
         cards.push(card);
@@ -150,7 +156,7 @@ function tryGrab() {
         document.getElementById('sub').innerText = selectedCard.userData.info.sub;
         document.getElementById('desc').innerText = selectedCard.userData.info.desc;
 
-        // 抽取动画：拉近并翻转 Y 轴，展示正面
+        // 翻转180度展示正面文案
         gsap.timeline({ onComplete: () => { isAnimating = false; } })
         .to(selectedCard.position, { x: 0, y: 1.2, z: -12, duration: 1.5, ease: "power2.out" }, 0)
         .to(selectedCard.rotation, { x: 0.2, y: Math.PI, z: 0, duration: 1.5, ease: "power2.out" }, 0)
@@ -163,14 +169,14 @@ function tryRelease() {
     isAnimating = true;
     gsap.to('#ui-layer', { opacity: 0, duration: 0.4 });
 
-    // 粒子爆发
     particleSystem.visible = true;
     const pos = particleGeometry.attributes.position.array;
-    const life = particleGeometry.attributes.lifespan.array;
     for (let i = 0; i < particleCount; i++) {
-        pos[i*3] = selectedCard.position.x; pos[i*3+1] = selectedCard.position.y; pos[i*3+2] = selectedCard.position.z;
-        life[i] = 1.0;
+        pos[i*3] = selectedCard.position.x; 
+        pos[i*3+1] = selectedCard.position.y; 
+        pos[i*3+2] = selectedCard.position.z;
     }
+    particleGeometry.attributes.position.needsUpdate = true;
 
     const angle = selectedCard.userData.angle;
     const tempCard = selectedCard;
@@ -189,40 +195,42 @@ function tryRelease() {
 function createGalaxy() {
     const geo = new THREE.BufferGeometry();
     const pts = [];
-    for(let i=0; i<15000; i++) {
-        const r = 500 + Math.random() * 1000;
+    for(let i=0; i<12000; i++) {
+        const r = 500 + Math.random() * 800;
         const t = Math.random() * Math.PI * 2, p = Math.random() * Math.PI;
         pts.push(r * Math.sin(p) * Math.cos(t), r * Math.sin(p) * Math.sin(t), r * Math.cos(p));
     }
     geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-    starField = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x666666, size: 2 }));
+    starField = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x555555, size: 1.5 }));
     scene.add(starField);
 }
 
 function createParticleSystem() {
     particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-    particleGeometry.setAttribute('lifespan', new THREE.BufferAttribute(particleLifespans, 1));
-    particleSystem = new THREE.Points(particleGeometry, new THREE.PointsMaterial({ color: 0xffd700, size: 0.3, transparent: true }));
+    particleSystem = new THREE.Points(particleGeometry, new THREE.PointsMaterial({ color: 0xffd700, size: 0.2, transparent: true }));
     particleSystem.visible = false;
     scene.add(particleSystem);
 }
 
 async function initHandTracking() {
-    const hands = new Hands({ locateFile: (f) => `./${f}` });
-    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.8 });
-    hands.onResults(res => {
-        if (res.multiHandLandmarks && res.multiHandLandmarks[0]) {
-            const p = res.multiHandLandmarks[0];
-            const x = (0.5 - p[8].x) * 15, y = (0.5 - p[8].y) * 12;
-            targetSpeed = (0.5 - p[8].x) * 0.08;
-            lightPoint.position.lerp(new THREE.Vector3(x, y, -15), 0.2);
-            const d = Math.hypot(p[4].x - p[8].x, p[4].y - p[8].y);
-            if (d < 0.05 && !isGrabbing && !isAnimating) { tryGrab(); isGrabbing = true; }
-            else if (d > 0.12 && isGrabbing) { tryRelease(); isGrabbing = false; }
-        }
-    });
-    const video = document.getElementById('video-input');
-    new Camera(video, { onFrame: async () => await hands.send({ image: video }), width: 640, height: 480 }).start();
+    try {
+        const hands = new Hands({ locateFile: (f) => `./${f}` });
+        hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.8 });
+        hands.onResults(res => {
+            if (res.multiHandLandmarks && res.multiHandLandmarks[0]) {
+                const p = res.multiHandLandmarks[0];
+                const x = (0.5 - p[8].x) * 15, y = (0.5 - p[8].y) * 12;
+                targetSpeed = (0.5 - p[8].x) * 0.08;
+                lightPoint.position.lerp(new THREE.Vector3(x, y, -15), 0.2);
+                const d = Math.hypot(p[4].x - p[8].x, p[4].y - p[8].y);
+                if (d < 0.05 && !isGrabbing && !isAnimating) { tryGrab(); isGrabbing = true; }
+                else if (d > 0.12 && isGrabbing) { tryRelease(); isGrabbing = false; }
+            }
+        });
+        const video = document.getElementById('video-input');
+        const cam = new Camera(video, { onFrame: async () => await hands.send({ image: video }), width: 640, height: 480 });
+        cam.start();
+    } catch (e) { console.error("MediaPipe failed:", e); }
 }
 
 function animate() {
@@ -231,8 +239,13 @@ function animate() {
     if (!selectedCard && !isAnimating) cardGroup.rotation.y += rotationSpeed;
     renderer.render(scene, camera);
 }
+
 init();
-window.addEventListener('resize', () => { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+window.addEventListener('resize', () => { 
+    camera.aspect = window.innerWidth/window.innerHeight; 
+    camera.updateProjectionMatrix(); 
+    renderer.setSize(window.innerWidth, window.innerHeight); 
+});
 </script> 
 </body> 
 </html>
