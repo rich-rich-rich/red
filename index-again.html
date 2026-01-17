@@ -2,7 +2,7 @@
 <html lang="zh-CN">  
 <head>  
     <meta charset="UTF-8">  
-    <title>红色记忆</title>  
+    <title>红色记忆 - 沉浸在线版</title>  
     <style>  
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Microsoft YaHei', serif; }  
         canvas { display: block; }  
@@ -26,10 +26,10 @@
 <body>  
 
 <div id="loading-screen">  
-    <div style="letter-spacing: 4px; font-size: 1.5em;">正在初始化事件...</div>  
+    <div style="letter-spacing: 4px; font-size: 1.5em;">正在通过云端初始化记忆引擎...</div>  
 </div>  
 
-<div id="debug-info">正在获取摄像头权限...</div>
+<div id="debug-info">请求摄像头权限中...</div>
 
 <div id="ui-layer">  
     <div class="card-inner-box">  
@@ -41,10 +41,10 @@
 
 <video id="video-input" style="display:none;" playsinline></video>  
 
-<script src="three.min.js"></script>  
-<script src="gsap.min.js"></script>  
-<script src="hands.js"></script>  
-<script src="camera_utils.js"></script>  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
 <script>  
 let scene, camera, renderer, cardGroup, cards = [];
@@ -54,36 +54,36 @@ let isGrabbing = false, selectedCard = null, isAnimating = false;
 let grabCounter = 0;
 let rotationSpeed = 0.003, targetSpeed = 0.003;
 
-// 扩展为20张卡牌的数据映射
 const rawData = [
     { name: "湘江战役", sub: "雄关漫道真如铁，而今迈步从头越——《忆秦娥·娄山关》", desc: "湘江血雨虽寒，然星火不灭。后辈若逢困厄，当学此役之后，反思前路，校准方向，莫惧道阻且长。就算遇到像湘江战役这样的低谷和困难，反思后重新出发，直面挑战。" },
-    { name: "遵义会议", sub: "“东方欲晓，莫道君行早”——《清平乐·会昌》", desc: "遵义城头，风雨虽急，然灯塔已明，后辈若迷方向，当循此智，而后明辨是非，笃定前行，莫失航标之光。“东方欲晓，莫道君行早”出自毛泽东的《清平乐·会昌》，意思是东方快要亮了，别说你出发得早。遵义会议就像长征路上的“东方欲晓”，为红军指明了方向，后辈若在人生中感到迷茫，也该像我们那时一样，尽早认清方向、坚定前行。" },
+    { name: "遵义会议", sub: "“东方欲晓，莫道君行早”——《清平乐·会昌》", desc: "遵义城头，风雨虽急，然灯塔已明，后辈若迷方向，当循此智，而后明辨是非，笃定前行，莫失航标之光。遵义会议就像长征路上的“东方欲晓”，为红军指明了方向。" },
     { name: "四渡赤水", sub: "“你打你的，我打我的”——《毛泽东选集》", desc: "四渡赤水时，敌人在后面追，我们忽东忽西，不跟着敌人的节奏走，“以不变应万变”才走出了活路，别被外界的声音打乱脚步，坚持自己的节奏。" },
-    { name: "巧渡金沙江", sub: "“兵无常势，水无常形”——《孙子兵法》", desc: "当年金沙江水流湍急，我们趁着夜色用木船悄悄过江，没有硬拼，靠的就是“变”的法子。遇到事情别死脑筋，像我们当年那样，换个角度想办法，路就活了。工作中卡壳了就换个思路，和人打交道遇着坎儿，就换个方式沟通。" },
-    { name: "强渡大渡河", sub: "“为有牺牲多壮志，敢教日月换新天”——《七律·到韶山》", desc: "当年大渡河上，船板被打穿了，战友们用身体堵着漏洞，血混着河水往下淌，可谁也没松手。这“牺牲”不是要你们去拼命，谨记把这份“换新天”的劲儿，用在让日子更像样上，把手里的项目做到自己满意，把家里的日子打理的井井有条，让这“新天”里，有光。" },
-    { name: "飞夺泸定桥", sub: "“狭路相逢勇者胜”——《毛泽东选集》", desc: "泸定桥的铁索晃得人心慌，底下是咆哮的河水，我们抓着铁链往前冲。不是蛮干，是明知危险也敢迈出的那一步。生活里总有需要“夺桥”的时刻，别被眼前的险境吓住，像我们当年那样，稳住脚、往前闯。" },
-    { name: "翻雪山", sub: "“世上无难事，只要肯攀登”——《水调歌头·重上井冈山》", desc: "翻雪山时，氧气稀薄得喘不上气，我们互相拽着绳子往上走，谁也没丢下谁。遇到难处别自己硬扛，像我们当年那样，和身边人搭把手，可能只是一句鼓励，也能攒着劲儿翻过眼前的雪山。" },
-    { name: "过草地", sub: "“行到水穷处，坐看云起时”——《终南别业》", desc: "当年过草地，粮草断绝、泥水没膝，走到实在走不动时，我们就坐在草地上歇一歇，看着天上的云慢慢飘，心想着总会有出路的。“行到水穷处，坐看云起时”出自王维的《终南别业》，意思是走到水流的尽头，看似已无路可走，却能坐下来静静观赏云气升腾。若遇困境，也别慌，停下来喘口气，看看身边的希望，等待新转机。" },
-    { name: "吴起镇会师", sub: "“数风流人物，还看今朝”——《沁园春·雪》", desc: "当年我们在吴起镇会师，看着红旗插上镇子，心里想着，这一路的跋涉，是为了让后来人能有好日子过。“数风流人物，还看今朝”，这“今朝”说的就是你们啊。你们要载着这份希望，带着我们的期盼，一直走下去。" },
-    { name: "会宁会师", sub: "“云程发轫，万里可期”——《满江红·和郭沫若同志》", desc: "会宁会师时，我们摸着打补丁的军装笑，想着以后百姓能有暖衣穿、热饭吃。认真过好每一天，照顾好身边人，就是我们当年盼的未来可期。若觉得日子难，就想想我们啃着干馍馍也相信明天会好，你们有热饭吃、有暖屋住，应把眼前的小日子经营好。" },
-    { name: "1949年中华人民共和国成立", sub: "人间正道是沧桑——《七律·人民解放军占领南京》", desc: "1949年开启复兴新程，就像我们从湘江血水里爬起来再出发，如今这正道上，你们正走着我们盼了一辈子的路。沧桑这二字，藏着所有不容易，也藏着走到底的底气。愿你们沿着这沧桑正道一直走下去向。我们看着，比啥都安心。" },
-    { name: "十一届三中全会", sub: "“沉舟侧畔千帆过，病树前头万木春”——《酬乐天扬州初逢席上见赠》", desc: "当年十一届三中全会时，我们坐在会场里，心里如同当年红军在遵义会议时一样沉重又带着盼头。国家在迷茫中徘徊，就像红军当年在长征路上找不到方向，可就是这次会议，找准了改革的新方向。前辈们也是这样敢拍板、敢转弯，才让红军走出了绝境。这道理真是用血泪换来的，迷茫时想想这两次转折，不管路多弯、坎多高，只要敢纠正，旧的迷雾即将散去，新的希望即将来临。" },
-    { name: "深圳等经济特区设立", sub: "“删繁就简三秋树，领异标新二月花”——《题画竹》", desc: "设立深圳等经济特区，像当年四渡赤水一样，用“领异标新”的胆子去闯、去试，才给国家发展闯出了新路子。遇到死局别硬扛，敢想新招、敢走新路，才有奔头。" },
-    { name: "香港回归", sub: "“运筹帷幄之中，决胜千里之外”——《史记·高祖本纪》", desc: "香港回归，那么多复杂的事儿，一点点谈，一步步办，都是提前周密规划、掌控全局的成果最后国旗平稳升起来的时候，多少人红了眼眶。这道理就像渡江时算准水流、选好时机那样，一举拿下。提前准备，胸有成竹，稳稳当当做成。" },
-    { name: "澳门回归", sub: "自信人生二百年，会当水击三千里——《七古·残句》", desc: "我们这些经历澳门回归的人，总想起强渡大渡河的前辈。他们在枪林弹雨中往前冲，靠的就是“我能行”的劲儿。现在我们看着国旗在澳门升起，和当年看到红军的红旗插上对岸的前辈们是一样的心情吧。心里一定像烧着一团火，知道这一仗没白打，再难的关也闯过来了。要坚信光明总有一天会来。" },
-    { name: "加入国际世贸组织", sub: "“敢为天下先”——《道德经》", desc: "我们国家加入世贸，是敢在未知中打开一扇门。敢为天下先不是瞎闯，是看准了方向就别怕难。面对新机会，别总想着等别人先走，看准了就去试，就像当年前辈们攀着铁索往前冲那样，闯过去了，就是新天地。" },
-    { name: "青藏铁路", sub: "“众人拾柴火焰高”", desc: "我们这些修青藏铁路的人，冻土上打桩难，工程师和工人围在一起商量；高寒缺氧，大家轮班作业、互相鼓劲。常想着过草地的前辈们。他们在沼泽里互相拉拽，才没让一个人掉队，那股“众人拾柴火焰高”的劲儿，我们修铁路时也记在心里。是前辈们用生命教会我们，再难的事，一群人抱成团就没有办不成的。" },
-    { name: "奥运会", sub: "“人心齐，泰山移”", desc: "我们这些参加过奥运会的人，站在赛场上，身后有团队的支持。常常想起过草地的前辈们。他们啃着草根也要跟着队伍走，靠的就是“人心齐，泰山移”的信念。不管是当年过草地还是现在拼奥运，个人的力量再强，也离不开身边人的托举。" },
-    { name: "共产党成立100周年", sub: "星火已燎原，百年基业固", desc: "吴起镇会师时，我们终于摆脱了追兵，在窑洞前点燃篝火，想着革命的火种总算保住了。如今共产党成立100周年，那真是像看到篝火燎原成了漫天星火！当年我们在吴起镇盼着家能安稳，现在这百年大家如此强盛，我们这些“老骨头”要是能亲眼看看，怕是要激动得掉泪。这盛世，比我们当年在篝火边聊的所有憧憬都要耀眼。" },
-    { name: "长征胜利90周年", sub: "长征九秩开新境，马年盛世入画屏", desc: "会宁会师那天，我们把红旗插在城头，风沙里的笑容比太阳还亮，这一路的脚印总算连成了路。如今九十年过去，心里的骄傲比山还重！这“新境”里，有你们桌上的热饭，窗外的高楼，路上的车水马龙，都是我们当年做梦都想看到的样子。你们好好守着这“新境”，过好每一天，让这“画屏”一直鲜亮下去，就是我们最盼的事。" }
-
+    { name: "巧渡金沙江", sub: "“兵无常势，水无常形”——《孙子兵法》", desc: "当年金沙江水流湍急，我们没有硬拼，靠的就是“变”的法子。遇到事情别死脑筋，换个角度想办法，路就活了。" },
+    { name: "强渡大渡河", sub: "“为有牺牲多壮志，敢教日月换新天”——《七律·到韶山》", desc: "当年大渡河上，战友们用身体堵着漏洞。这“牺牲”不是要你们去拼命，谨记把这份“换新天”的劲儿，用在让日子更像样上。" },
+    { name: "飞夺泸定桥", sub: "“狭路相逢勇者胜”——《毛泽东选集》", desc: "泸定桥的铁索晃得人心慌，不是蛮干，是明知危险也敢迈出的那一步。生活里总有需要“夺桥”的时刻，别被吓住，稳住脚、往前闯。" },
+    { name: "翻雪山", sub: "“世上无难事，只要肯攀登”——《水调歌头·重上井冈山》", desc: "翻雪山时，谁也没丢下谁。遇到难处别自己硬扛，像我们当年那样，和身边人搭把手，攒着劲儿翻过眼前的雪山。" },
+    { name: "过草地", sub: "“行到水穷处，坐看云起时”——《终南别业》", desc: "当年过草地，粮草断绝、泥水没膝。若遇困境，也别慌，停下来喘口气，看看身边的希望，等待新转机。" },
+    { name: "吴起镇会师", sub: "“数风流人物，还看今朝”——《沁园春·雪》", desc: "我们终于摆脱了追兵，革命的火种总算保住了。你们要载着这份希望，带着我们的期盼，一直走下去。" },
+    { name: "会宁会师", sub: "“云程发轫，万里可期”——《满江红·和郭沫若同志》", desc: "会宁会师时，我们摸着打补丁的军装笑，想着以后百姓能有暖衣穿。认真过好每一天，照顾好身边人，就是我们当年盼的未来。" },
+    { name: "1949年中华人民共和国成立", sub: "人间正道是沧桑——《七律·人民解放军占领南京》", desc: "1949年开启复兴新程。沧桑这二字，藏着所有不容易，也藏着走到底的底气。愿你们沿着这沧桑正道一直走下去。" },
+    { name: "十一届三中全会", sub: "“沉舟侧畔千帆过，病树前头万木春”——《酬乐天扬州初逢席上见赠》", desc: "就像遵义会议一样，找准了改革的新方向。迷茫时想想这两次转折，只要敢纠正，旧的迷雾即将散去。" },
+    { name: "深圳等经济特区设立", sub: "“删繁就简三秋树，领异标新二月花”——《题画竹》", desc: "用“领异标新”的胆子去闯。遇到死局别硬扛，敢想新招、敢走新路，才有奔头。" },
+    { name: "香港回归", sub: "“运筹帷幄之中，决胜千里之外”——《史记·高祖本纪》", desc: "香港回归是提前周密规划、掌控全局的成果。提前准备，胸有成竹，稳稳当当做成。" },
+    { name: "澳门回归", sub: "自信人生二百年，会当水击三千里——《七古·残句》", desc: "心里像烧着一团火，知道这一仗没白打，再难的关也闯过来了。要坚信光明总有一天会来。" },
+    { name: "加入国际世贸组织", sub: "“敢为天下先”——《道德经》", desc: "敢在未知中打开一扇门。面对新机会，别总想着等别人先走，看准了就去试，闯过去了，就是新天地。" },
+    { name: "青藏铁路", sub: "“众人拾柴火焰高”", desc: "在冻土上打桩难，但大家抱成团。再难的事，一群人抱成团就没有办不成的。" },
+    { name: "奥运会", sub: "“人心齐，泰山移”", desc: "个人的力量再强，也离不开身边人的托举。不管是当年过草地还是拼奥运，靠的都是信念。" },
+    { name: "共产党成立100周年", sub: "星火已燎原，百年基业固", desc: "如今那真是像看到篝火燎原成了漫天星火！这盛世，比我们当年在篝火边聊的所有憧憬都要耀眼。" },
+    { name: "长征胜利90周年", sub: "长征九秩开新境，马年盛世入画屏", desc: "这“新境”里，有你们桌上的热饭，窗外的高楼。你们好好守着这“新境”，就是我们最盼的事。" }
 ];
-const tarotData = [...rawData]; // 复制一份凑够20张
+
+const tarotData = [...rawData];
 
 function loadTex(name) {
     const loader = new THREE.TextureLoader();
-    const tex = loader.load('./' + name + '.jpg');
-    tex.colorSpace = THREE.SRGBColorSpace; // 强制色彩空间，防止色差
+    // 依然保留本地/相对路径加载，适配 GitHub Pages 目录下的图片
+    const tex = loader.load('./' + encodeURIComponent(name) + '.jpg');
+    tex.colorSpace = THREE.SRGBColorSpace; 
     return tex;
 }
 
@@ -95,20 +95,19 @@ async function init() {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.outputColorSpace = THREE.SRGBColorSpace; // 设置全局色彩输出
+    renderer.outputColorSpace = THREE.SRGBColorSpace; 
     document.body.appendChild(renderer.domElement);
 
     createGalaxy();
     createParticleSystem();
     createTarotRing();
 
-    // 1. 黄金光标
     lightPoint = new THREE.Mesh(
         new THREE.SphereGeometry(0.2, 32, 32), 
         new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.8 }) 
     );
     scene.add(lightPoint);
-    scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+    scene.add(new THREE.AmbientLight(0xffffff, 2.4));
 
     await initHandTracking();
     
@@ -121,24 +120,22 @@ async function init() {
 function createTarotRing() {
     cardGroup = new THREE.Group();
     scene.add(cardGroup);
-    const radius = 28; // 场景逻辑：半径28
+    const radius = 28; 
     const cardGeo = new THREE.BoxGeometry(5, 7.5, 0.1);
     const backTex = loadTex('back');
 
     tarotData.forEach((data, i) => {
         const angle = (i / tarotData.length) * Math.PI * 2;
         const mats = [
-            new THREE.MeshStandardMaterial({ color: 0x222222 }), // 侧面
+            new THREE.MeshStandardMaterial({ color: 0x222222 }), 
             new THREE.MeshStandardMaterial({ color: 0x222222 }),
             new THREE.MeshStandardMaterial({ color: 0x222222 }),
             new THREE.MeshStandardMaterial({ color: 0x222222 }),
-            new THREE.MeshStandardMaterial({ map: loadTex(data.name) }), // 正面
-            new THREE.MeshStandardMaterial({ map: backTex })           // 背面
+            new THREE.MeshStandardMaterial({ map: loadTex(data.name) }), 
+            new THREE.MeshStandardMaterial({ map: backTex })           
         ];
         const card = new THREE.Mesh(cardGeo, mats);
         card.position.set(Math.sin(angle) * radius, 0, Math.cos(angle) * radius);
-        
-        // 初始状态：背对相机
         card.lookAt(0, 0, 0); 
         card.rotateY(Math.PI); 
         
@@ -150,8 +147,6 @@ function createTarotRing() {
 
 function tryGrab() {
     if (selectedCard || isAnimating) return;
-    
-    // 射线检测
     const dir = lightPoint.position.clone().normalize();
     raycaster.set(new THREE.Vector3(0,0,0), dir);
     const intersects = raycaster.intersectObjects(cards);
@@ -177,7 +172,6 @@ function tryRelease() {
     isAnimating = true;
     gsap.to('#ui-layer', { opacity: 0, duration: 0.3 });
 
-    // 粒子爆炸逻辑
     const posAttr = particleGeometry.attributes.position;
     const velocities = [];
     for (let i = 0; i < 800; i++) {
@@ -195,12 +189,10 @@ function tryRelease() {
     selectedCard = null;
 
     gsap.to(tempCard.scale, { x: 0, y: 0, z: 0, duration: 0.6, ease: "power2.in", onComplete: () => {
-        // 重置位置
         cardGroup.attach(tempCard);
         tempCard.position.set(Math.sin(originAngle)*28, 0, Math.cos(originAngle)*28);
         tempCard.lookAt(0,0,0);
         tempCard.rotateY(Math.PI);
-        
         gsap.to(tempCard.scale, { x:1, y:1, z:1, duration: 1.2, ease: "elastic.out(1, 0.5)" });
         isAnimating = false;
         setTimeout(() => { particleSystem.visible = false; }, 1000);
@@ -214,7 +206,6 @@ function createGalaxy() {
         const r = 400 + Math.random() * 600;
         const t = Math.random() * Math.PI * 2, p = Math.random() * Math.PI;
         pts.push(r * Math.sin(p) * Math.cos(t), r * Math.sin(p) * Math.sin(t), r * Math.cos(p));
-        // 红黄橙三色
         const rand = Math.random();
         const color = rand > 0.6 ? new THREE.Color(0xff4500) : (rand > 0.3 ? new THREE.Color(0xffd700) : new THREE.Color(0xff8c00));
         cols.push(color.r, color.g, color.b);
@@ -236,8 +227,8 @@ function createParticleSystem() {
 
 async function initHandTracking() {
     const debug = document.getElementById('debug-info');
-    // 重要：locateFile 指向本地 GitHub 目录
-    const hands = new Hands({ locateFile: (file) => `./${file}` });
+    // 修改：使用 CDN 的二进制资源
+    const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
     
     hands.setOptions({ 
         maxNumHands: 1, 
@@ -248,16 +239,13 @@ async function initHandTracking() {
 
     hands.onResults(res => {
         if (res.multiHandLandmarks && res.multiHandLandmarks[0]) {
-            debug.innerText = "手势引擎：已连接";
+            debug.innerText = "手势状态：已追踪";
             const p = res.multiHandLandmarks[0];
-            
-            // 映射坐标
             const x = (0.5 - p[8].x) * 45; 
             const y = (0.5 - p[8].y) * 35;
-            targetSpeed = (0.5 - p[8].x) * 0.1; // 拨动速度
+            targetSpeed = (0.5 - p[8].x) * 0.1;
             lightPoint.position.lerp(new THREE.Vector3(x, y, -25), 0.15);
 
-            // 捏合逻辑
             const d = Math.hypot(p[4].x - p[8].x, p[4].y - p[8].y);
             if (d < 0.05) {
                 grabCounter++;
@@ -267,7 +255,7 @@ async function initHandTracking() {
                 if (isGrabbing) { tryRelease(); isGrabbing = false; }
             }
         } else {
-            debug.innerText = "手势引擎：查找手部...";
+            debug.innerText = "手势状态：未检测到手部";
         }
     });
 
@@ -281,15 +269,10 @@ async function initHandTracking() {
 
 function animate() {
     requestAnimationFrame(animate);
-    
-    // 银河微转
     starField.rotation.y += 0.0002;
-
-    // 拨动圆环
     rotationSpeed = THREE.MathUtils.lerp(rotationSpeed, targetSpeed, 0.05);
     if (!selectedCard && !isAnimating) cardGroup.rotation.y += rotationSpeed;
     
-    // 粒子爆炸动画更新
     if(particleSystem.visible && particleGeometry.userData.velocities) {
         const arr = particleGeometry.attributes.position.array;
         const v = particleGeometry.userData.velocities;
@@ -300,7 +283,6 @@ function animate() {
         }
         particleGeometry.attributes.position.needsUpdate = true;
     }
-    
     renderer.render(scene, camera);
 }
 
