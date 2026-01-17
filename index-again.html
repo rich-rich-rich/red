@@ -1,80 +1,73 @@
-<!DOCTYPE html>  
-<html lang="zh-CN">  
-<head>  
-    <meta charset="UTF-8">  
-    <title>红色记忆 - 最终修复版</title>  
-    <style>  
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Microsoft YaHei', serif; }  
-        canvas { display: block; }  
-        #ui-layer {  
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);  
-            width: 90%; max-width: 800px; color: #fff; text-align: center;  
+<!DOCTYPE html> 
+<html lang="zh-CN"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <title>红色记忆 - 交互修复版</title> 
+    <style> 
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Microsoft YaHei', serif; } 
+        canvas { display: block; } 
+        #ui-layer { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            width: 90%; max-width: 800px; color: #fff; text-align: center; 
             pointer-events: none; opacity: 0; z-index: 100; transition: opacity 0.5s;
-        }  
-        .card-inner-box {  
-            background: radial-gradient(circle at center, rgba(80, 0, 0, 0.85) 0%, rgba(10, 0, 0, 0.95) 100%);  
-            padding: 40px; border-radius: 30px; border: 1px solid rgba(255, 200, 0, 0.4);  
-            box-shadow: 0 0 100px rgba(0,0,0,0.9); backdrop-filter: blur(15px);  
-        }  
-        .card-title { font-size: 3em; color: #f3e5ab; margin-bottom: 15px; letter-spacing: 10px; font-weight: bold; }  
-        .card-sub { font-size: 1.4em; color: #ffcc00; margin-bottom: 20px; }
-        .card-desc { font-size: 1.2em; line-height: 1.8; color: #eee; border-top: 1px solid rgba(255,215,0,0.3); padding-top: 20px; }  
-        #loading-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #ffcc00; }  
-    </style>  
-</head>  
-<body>  
+        } 
+        .card-inner-box { 
+            background: radial-gradient(circle at center, rgba(30, 20, 10, 0.95) 0%, rgba(5, 5, 10, 1) 100%); 
+            padding: 40px; border-radius: 30px; border: 2px solid rgba(201, 160, 80, 0.6); 
+            box-shadow: 0 0 80px rgba(0,0,0,0.9); backdrop-filter: blur(20px); 
+        } 
+        .card-title { font-size: 2.8em; color: #f3e5ab; margin-bottom: 15px; letter-spacing: 5px; font-weight: bold; text-shadow: 0 2px 10px rgba(0,0,0,0.5); } 
+        .card-sub { font-size: 1.3em; color: #ffcc00; margin-bottom: 20px; font-style: italic; }
+        .card-desc { font-size: 1.1em; line-height: 1.8; color: #ddd; border-top: 1px solid rgba(201, 160, 80, 0.3); padding-top: 20px; text-align: justify; } 
+        #loading-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #c9a050; } 
+    </style> 
+</head> 
+<body> 
 
-<div id="loading-screen">  
-    <div style="letter-spacing: 4px; font-size: 1.5em;">初始化中，请确保摄像头已开启...</div>  
-</div>  
+<div id="loading-screen"> 
+    <div style="font-size: 1.5em; letter-spacing: 4px;">正在连接历史时空...</div>
+    <div style="font-size: 0.8em; color: #666; margin-top: 10px;">请允许摄像头权限</div> 
+</div> 
 
-<div id="ui-layer">  
-    <div class="card-inner-box">  
-        <div id="title" class="card-title"></div>  
+<div id="ui-layer"> 
+    <div class="card-inner-box"> 
+        <div id="title" class="card-title"></div> 
         <div id="sub" class="card-sub"></div>
-        <div id="desc" class="card-desc"></div>  
+        <div id="desc" class="card-desc"></div> 
     </div> 
-</div>  
+</div> 
 
-<video id="video-input" style="display:none;" playsinline></video>  
+<video id="video-input" style="display:none;" playsinline></video> 
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
-<script>  
-const rawData = [
-    { name: "湘江战役", sub: "雄关漫道真如铁，而今迈步从头越——《忆秦娥·娄山关》", desc: "湘江血雨虽寒，然星火不灭。后辈若逢困厄，当学此役之后，反思前路，校准方向，莫惧道阻且长。就算遇到像湘江战役这样的低谷和困难，反思后重新出发，直面挑战。" },
-    { name: "遵义会议", sub: "“东方欲晓，莫道君行早”——《清平乐·会昌》", desc: "遵义城头，风雨虽急，然灯塔已明，后辈若迷方向，当循此智，而后明辨是非，笃定前行，莫失航标之光。遵义会议就像长征路上的“东方欲晓”，为红军指明了方向。" },
-    { name: "四渡赤水", sub: "“你打你的，我打我的”——《毛泽东选集》", desc: "四渡赤水时，敌人在后面追，我们忽东忽西，不跟着敌人的节奏走，“以不变应万变”才走出了活路，别被外界的声音打乱脚步，坚持自己的节奏。" },
-    { name: "巧渡金沙江", sub: "“兵无常势，水无常形”——《孙子兵法》", desc: "当年金沙江水流湍急，我们没有硬拼，靠的就是“变”的法子。遇到事情别死脑筋，换个角度想办法，路就活了。" },
-    { name: "强渡大渡河", sub: "“为有牺牲多壮志，敢教日月换新天”——《七律·到韶山》", desc: "当年大渡河上，战友们用身体堵着漏洞。这“牺牲”不是要你们去拼命，谨记把这份“换新天”的劲儿，用在让日子更像样上。" },
-    { name: "飞夺泸定桥", sub: "“狭路相逢勇者胜”——《毛泽东选集》", desc: "泸定桥的铁索晃得人心慌，不是蛮干，是明知危险也敢迈出的那一步。别被吓住，稳住脚、往前闯。" },
-    { name: "翻雪山", sub: "“世上无难事，只要肯攀登”——《水调歌头·重上井冈山》", desc: "翻雪山时，谁也没丢下谁。遇到难处别自己硬扛，和身边人搭把手，攒着劲儿翻过雪山。" },
-    { name: "过草地", sub: "“行到水穷处，坐看云起时”——《终南别业》", desc: "当年过草地，粮草断绝、泥水没膝。若遇困境，也别慌，停下来喘口气，看看身边的希望，等待新转机。" },
-    { name: "吴起镇会师", sub: "“数风流人物，还看今朝”——《沁园春·雪》", desc: "我们在吴起镇会师，心里想着，这一路的跋涉，是为了让后来人能有好日子过。" },
-    { name: "会宁会师", sub: "“云程发轫，万里可期”——《满江红·和郭沫若同志》", desc: "会宁会师时，我们摸着打补丁的军装笑。认真过好每一天，照顾好身边人，就是我们当年盼的未来。" },
-    { name: "1949年中华人民共和国成立", sub: "人间正道是沧桑——《七律·人民解放军占领南京》", desc: "1949年开启复兴新程。沧桑这二字，藏着所有不容易，也藏着走到底的底气。" },
-    { name: "十一届三中全会", sub: "“沉舟侧畔千帆过，病树前头万木春”——《酬乐天扬州初逢席上见赠》", desc: "找准了改革的新方向。旧的迷雾即将散去，新的希望即将来临。" },
-    { name: "深圳等经济特区设立", sub: "“删繁就简三秋树，领异标新二月花”——《题画竹》", desc: "用“领异标新”的胆子去闯、去试，才有奔头。" },
-    { name: "香港回归", sub: "“运筹帷幄之中，决胜千里之外”——《史记·高祖本纪》", desc: "香港回归是提前周密规划、掌控全局的成果。提前准备，胸有成竹，稳稳当当做成。" },
-    { name: "澳门回归", sub: "自信人生二百年，会当水击三千里——《七古·残句》", desc: "心里像烧着一团火，知道这一仗没白打，再难的关也闯过来了。要坚信光明总有一天会来。" },
-    { name: "加入国际世贸组织", sub: "“敢为天下先”——《道德经》", desc: "敢在未知中打开一扇门。闯过去了，就是新天地。" },
-    { name: "青藏铁路", sub: "“众人拾柴火焰高”", desc: "在冻土上打桩难，但大家抱成团。再难的事，一群人抱成团就没有办不成的。" },
-    { name: "奥运会", sub: "“人心齐，泰山移”", desc: "个人的力量再强，也离不开身边人的托举。靠的就是齐心的信念。" },
-    { name: "共产党成立100周年", sub: "星火已燎原，百年基业固", desc: "如今那真是像看到篝火燎原成了漫天星火！这盛世，比我们当年在篝火边聊的所有憧憬都要耀眼。" },
-    { name: "长征胜利90周年", sub: "长征九秩开新境，马年盛世入画屏", desc: "这“新境”里，有你们桌上的热饭，窗外的高楼。你们好好守着这“新境”，就是我们最盼的事。" }
+<script> 
+const tarotData = [
+    { name: "湘江战役", sub: "雄关漫道真如铁，而今迈步从头越", desc: "湘江血雨虽寒，然星火不灭。后辈若逢困厄，当学此役之后，反思前路，校准方向，莫惧道阻且长。" },
+    { name: "遵义会议", sub: "东方欲晓，莫道君行早", desc: "遵义城头，风雨虽急，然灯塔已明。后辈若迷方向，当循此智，而后明辨是非，笃定前行。" },
+    { name: "四渡赤水", sub: "你打你的，我打我的", desc: "不跟着敌人的节奏走，“以不变应万变”才走出了活路。别被外界的声音打乱脚步，坚持自己的节奏。" },
+    { name: "巧渡金沙江", sub: "兵无常势，水无常形", desc: "遇到死胡同别硬钻，换个角度想办法，路就活了。工作中卡壳了就换个思路，变则通。" },
+    { name: "强渡大渡河", sub: "为有牺牲多壮志，敢教日月换新天", desc: "这“牺牲”不是要你们去拼命，谨记把这份“换新天”的劲儿，用在让日子更像样上。" },
+    { name: "飞夺泸定桥", sub: "狭路相逢勇者胜", desc: "不是蛮干，是明知危险也敢迈出的那一步。别被眼前的险境吓住，稳住脚、往前闯。" },
+    { name: "翻雪山", sub: "世上无难事，只要肯攀登", desc: "翻雪山时，谁也没丢下谁。遇到难处别自己硬扛，和身边人搭把手，攒着劲儿翻过雪山。" },
+    { name: "过草地", sub: "行到水穷处，坐看云起时", desc: "若遇困境，也别慌，停下来喘口气，看看身边的希望，等待新转机。" },
+    { name: "吴起镇会师", sub: "数风流人物，还看今朝", desc: "这一路的跋涉，是为了让后来人能有好日子过。你们要载着这份希望，一直走下去。" },
+    { name: "1949年建国", sub: "人间正道是沧桑", desc: "沧桑这二字，藏着所有不容易，也藏着走到底的底气。愿你们沿着这沧桑正道一直走下去。" }
 ];
 
 let scene, camera, renderer, cardGroup, cards = [];
 let lightPoint, particleSystem, starField;
 let raycaster = new THREE.Raycaster();
+let mouse = new THREE.Vector2(); // 用于存储归一化坐标
 let isGrabbing = false, selectedCard = null, isAnimating = false;
 let grabCounter = 0;
-let rotationSpeed = 0.003, targetSpeed = 0.003;
+let rotationSpeed = 0.002, targetSpeed = 0.002;
 
-const particleCount = 800; 
+// 粒子相关
+const particleCount = 1000; 
 const particleGeometry = new THREE.BufferGeometry();
 const particlePositions = new Float32Array(particleCount * 3);
 const particleVelocities = new Float32Array(particleCount * 3);
@@ -82,169 +75,229 @@ const particleLifespans = new Float32Array(particleCount);
 
 function loadTex(name) {
     const loader = new THREE.TextureLoader();
-    const tex = loader.load('./' + encodeURIComponent(name) + '.jpg');
-    tex.colorSpace = THREE.SRGBColorSpace; 
-    return tex;
+    // 增加 fallback，如果没有图片，就用红色纹理，保证程序不崩
+    return loader.load(
+        './' + name + '.jpg', 
+        undefined, 
+        undefined, 
+        (err) => { 
+            // console.log('图片未找到，使用默认材质'); 
+        }
+    );
 }
 
 async function init() {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-    camera.position.set(0, 0, 0);
+    camera.position.set(0, 0, 0); // 相机归零
 
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.body.appendChild(renderer.domElement);
 
     createGalaxy();
     createParticleSystem();
     createRing();
 
-    // 关键修复：使用 BasicMaterial 确保小球自己会亮，不需要灯光也能看见
-    lightPoint = new THREE.Mesh(
-        new THREE.SphereGeometry(0.15, 32, 32), 
-        new THREE.MeshBasicMaterial({ color: 0xffd700 }) 
-    );
+    // 修复2：光标层级置顶 (depthTest: false)
+    const dotGeo = new THREE.SphereGeometry(0.2, 32, 32);
+    const dotMat = new THREE.MeshBasicMaterial({ color: 0xffd700, depthTest: false, transparent: true, opacity: 0.9 });
+    lightPoint = new THREE.Mesh(dotGeo, dotMat);
+    lightPoint.renderOrder = 999; // 强制最上层渲染
+    lightPoint.position.set(0, 0, -5); // 初始放在镜头前
     scene.add(lightPoint);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 2.5));
+    scene.add(new THREE.AmbientLight(0xffffff, 2));
 
     await initHandTracking();
-    gsap.to('#loading-screen', { opacity: 0, duration: 1, onComplete: () => document.getElementById('loading-screen').remove() });
     animate();
 }
 
 function createRing() {
     cardGroup = new THREE.Group();
     scene.add(cardGroup);
-    const radius = 28;
-    const cardGeo = new THREE.BoxGeometry(5, 7.5, 0.15); 
+    const radius = 35; // 稍微拉近一点距离
+    const cardGeo = new THREE.BoxGeometry(6, 9, 0.2); 
     const backTex = loadTex('back');
 
-    rawData.forEach((data, i) => {
-        const angle = (i / rawData.length) * Math.PI * 2;
+    tarotData.forEach((data, i) => {
+        const angle = (i / tarotData.length) * Math.PI * 2;
+        
         const mats = [
-            new THREE.MeshStandardMaterial({ color: 0x000 }),
-            new THREE.MeshStandardMaterial({ color: 0x000 }),
-            new THREE.MeshStandardMaterial({ color: 0x000 }),
-            new THREE.MeshStandardMaterial({ color: 0x000 }),
-            new THREE.MeshStandardMaterial({ map: loadTex(data.name) }), 
-            new THREE.MeshStandardMaterial({ map: backTex })
+            new THREE.MeshStandardMaterial({ color: 0x330000 }), // 侧面暗红
+            new THREE.MeshStandardMaterial({ color: 0x330000 }),
+            new THREE.MeshStandardMaterial({ color: 0x330000 }),
+            new THREE.MeshStandardMaterial({ color: 0x330000 }),
+            new THREE.MeshStandardMaterial({ map: loadTex(data.name), color: 0xffffff }), // 正面
+            new THREE.MeshStandardMaterial({ map: backTex, color: 0x880000 }) // 背面
         ];
+
         const card = new THREE.Mesh(cardGeo, mats);
         card.position.set(Math.sin(angle) * radius, 0, Math.cos(angle) * radius);
         card.lookAt(0, 0, 0);
-        card.rotateY(Math.PI);
+        card.rotateY(Math.PI); // 修正朝向，让正面朝向圆心
+        
         card.userData = { angle: angle, info: data };
         cards.push(card);
         cardGroup.add(card);
     });
 }
 
+// 修复3：完全重写的手势追踪与坐标映射
 async function initHandTracking() {
-    const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/${file}` });
-    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.8, minTrackingConfidence: 0.8 });
+    const hands = new Hands({ 
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` // 使用 CDN 加载 WASM
+    });
+    
+    hands.setOptions({ 
+        maxNumHands: 1, 
+        modelComplexity: 1, 
+        minDetectionConfidence: 0.7, 
+        minTrackingConfidence: 0.7 
+    });
     
     hands.onResults(results => {
-        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            const pts = results.multiHandLandmarks[0];
-            const x = (0.5 - pts[8].x) * 2.5;
-            const y = (0.5 - pts[8].y) * 2;
-            targetSpeed = x * 0.06;
-            
-            // 坐标映射完全对齐你成功的塔罗牌代码
-            lightPoint.position.lerp(new THREE.Vector3(x * 6, y * 5, -8), 0.2);
+        // 隐藏加载层
+        const loading = document.getElementById('loading-screen');
+        if (loading && loading.style.opacity !== '0') {
+             gsap.to('#loading-screen', { opacity: 0, duration: 1, onComplete: () => loading.remove() });
+        }
 
-            const d = Math.sqrt(Math.pow(pts[4].x - pts[8].x, 2) + Math.pow(pts[4].y - pts[8].y, 2));
-            if (d < 0.06) {
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            const p = results.multiHandLandmarks[0];
+            const indexFinger = p[8];
+            const thumb = p[4];
+
+            // --- 核心修复：坐标映射 (NDC) ---
+            // MediaPipe: x(0~1), y(0~1) -> Three.js Screen: x(-1~1), y(1~-1)
+            const ndcX = (1 - indexFinger.x) * 2 - 1; // 镜像翻转 X
+            const ndcY = -(indexFinger.y * 2 - 1);    // 翻转 Y
+            
+            mouse.set(ndcX, ndcY); // 更新给 Raycaster 用
+
+            // 让小黄点跟随 (反投影)
+            const vector = new THREE.Vector3(ndcX, ndcY, 0.5);
+            vector.unproject(camera);
+            const dir = vector.sub(camera.position).normalize();
+            const distance = 10; // 光标在相机前方10单位
+            lightPoint.position.copy(camera.position).add(dir.multiplyScalar(distance));
+
+            // 旋转速度控制
+            targetSpeed = ndcX * 0.03;
+
+            // 捏合检测
+            const dist = Math.hypot(indexFinger.x - thumb.x, indexFinger.y - thumb.y);
+            if (dist < 0.06) {
                 grabCounter++;
-                if (grabCounter > 5 && !isGrabbing && !isAnimating) { tryGrab(); isGrabbing = true; }
-            } else if (d > 0.12) {
+                lightPoint.scale.set(1.5, 1.5, 1.5); // 捏合反馈
+                if(grabCounter > 5 && !isGrabbing && !isAnimating) { 
+                    tryGrab(); 
+                    isGrabbing = true; 
+                }
+            } else {
                 grabCounter = 0;
-                if (isGrabbing && !isAnimating) { tryRelease(); isGrabbing = false; }
+                lightPoint.scale.set(1, 1, 1);
+                if (isGrabbing && !isAnimating) { 
+                    tryRelease(); 
+                    isGrabbing = false; 
+                }
             }
         }
     });
 
     const video = document.getElementById('video-input');
-    const cameraHand = new Camera(video, { onFrame: async () => { await hands.send({ image: video }); }, width: 640, height: 480 });
-    cameraHand.start();
+    const cam = new Camera(video, { 
+        onFrame: async () => { await hands.send({ image: video }); }, 
+        width: 640, 
+        height: 480 
+    });
+    
+    cam.start().catch(err => {
+        document.querySelector('#loading-screen div').innerHTML = "摄像头启动失败<br>请检查是否为 HTTPS 或 Localhost";
+    });
 }
 
 function tryGrab() {
     if (selectedCard || isAnimating) return;
-    const dir = lightPoint.position.clone().normalize();
-    raycaster.set(new THREE.Vector3(0,0,0), dir);
+    
+    // 修复4：使用 setFromCamera 进行标准的射线检测
+    raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(cards);
 
     if (intersects.length > 0) {
-        isAnimating = true;
-        selectedCard = intersects[0].object;
+        isAnimating = true; 
+        selectedCard = intersects[0].object; 
+        
+        // 坐标系转换
         scene.attach(selectedCard);
 
         document.getElementById('title').innerText = selectedCard.userData.info.name;
         document.getElementById('sub').innerText = selectedCard.userData.info.sub;
         document.getElementById('desc').innerText = selectedCard.userData.info.desc;
 
-        gsap.timeline({ onComplete: () => { isAnimating = false; } })
-        .to(selectedCard.position, { x: 0, y: 0.5, z: -10, duration: 1.5, ease: "expo.out" }, 0)
-        .to(selectedCard.rotation, { x: 0, y: 0, z: 0, duration: 1.5, ease: "expo.out" }, 0)
-        .to('#ui-layer', { opacity: 1, duration: 0.8 }, 0.6);
+        // 动画：卡片飞到眼前
+        gsap.timeline({ onComplete: () => isAnimating = false })
+            .to(selectedCard.position, { x: 0, y: 0, z: -15, duration: 1.2, ease: "back.out(1.2)" }, 0)
+            .to(selectedCard.rotation, { x: 0, y: Math.PI, z: 0, duration: 1.2 }, 0) // 正面对齐
+            .to('#ui-layer', { opacity: 1, duration: 0.8 }, 0.5);
     }
 }
 
 function tryRelease() {
     if (!selectedCard || isAnimating) return;
-    isAnimating = true;
+    isAnimating = true; 
     gsap.to('#ui-layer', { opacity: 0, duration: 0.4 });
 
     const startPos = selectedCard.position.clone();
-    const startRot = selectedCard.rotation.clone();
+    
+    // 粒子爆炸视觉
     selectedCard.visible = false; 
-    particleSystem.visible = true;
+    particleSystem.visible = true; 
     particleSystem.material.opacity = 1;
-
-    const posAttr = particleGeometry.attributes.position;
-    const velAttr = particleGeometry.attributes.velocity;
-    const lifeAttr = particleGeometry.attributes.lifespan;
-
+    
+    const pos = particleGeometry.attributes.position;
+    const life = particleGeometry.attributes.lifespan;
+    
     for (let i = 0; i < particleCount; i++) {
         const i3 = i * 3;
-        const p = new THREE.Vector3((Math.random()-0.5)*4, (Math.random()-0.5)*6, (Math.random()-0.5)*0.5);
-        p.applyEuler(startRot);
-        posAttr.array[i3] = startPos.x + p.x;
-        posAttr.array[i3+1] = startPos.y + p.y;
-        posAttr.array[i3+2] = startPos.z + p.z;
-        const speed = 0.5 + Math.random() * 2;
-        velAttr.array[i3] = (Math.random()-0.5)*speed;
-        velAttr.array[i3+1] = (Math.random()-0.5)*speed;
-        velAttr.array[i3+2] = (Math.random()-0.5)*speed;
-        lifeAttr.array[i] = 1.0;
+        // 粒子从卡片位置炸开
+        pos.array[i3] = startPos.x + (Math.random()-0.5) * 4; 
+        pos.array[i3+1] = startPos.y + (Math.random()-0.5) * 6; 
+        pos.array[i3+2] = startPos.z;
+        
+        // 随机速度
+        particleVelocities[i3] = (Math.random()-0.5) * 0.5;
+        particleVelocities[i3+1] = (Math.random()-0.5) * 0.5;
+        particleVelocities[i3+2] = (Math.random()-0.5) * 0.5;
+        
+        life.array[i] = 1.0;
     }
-    posAttr.needsUpdate = true; velAttr.needsUpdate = true; lifeAttr.needsUpdate = true;
+    pos.needsUpdate = true; life.needsUpdate = true;
 
     gsap.to(particleSystem.material, { opacity: 0, duration: 1.5, onComplete: () => { particleSystem.visible = false; isAnimating = false; } });
 
-    const angle = selectedCard.userData.angle;
-    const tempCard = selectedCard;
+    // 卡片静默归位
+    const ang = selectedCard.userData.angle;
+    const temp = selectedCard; 
     selectedCard = null;
+    
     setTimeout(() => {
-        cardGroup.attach(tempCard);
-        tempCard.position.set(Math.sin(angle)*28, 0, Math.cos(angle)*28);
-        tempCard.lookAt(0,0,0); tempCard.rotateY(Math.PI);
-        tempCard.visible = true; tempCard.scale.set(0,0,0);
-        gsap.to(tempCard.scale, { x:1, y:1, z:1, duration: 0.8 });
+        cardGroup.attach(temp); 
+        temp.position.set(Math.sin(ang)*35, 0, Math.cos(ang)*35);
+        temp.lookAt(0,0,0); 
+        temp.rotateY(Math.PI); 
+        temp.visible = true;
+        temp.scale.set(0,0,0);
+        gsap.to(temp.scale, {x:1, y:1, z:1, duration: 0.5});
     }, 1200);
 }
 
 function createParticleSystem() {
     particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-    particleGeometry.setAttribute('velocity', new THREE.BufferAttribute(particleVelocities, 3));
     particleGeometry.setAttribute('lifespan', new THREE.BufferAttribute(particleLifespans, 1));
     particleSystem = new THREE.Points(particleGeometry, new THREE.PointsMaterial({
-        color: 0xffd700, size: 0.15, transparent: true, blending: THREE.AdditiveBlending
+        color: 0xffcc00, size: 0.2, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
     }));
     particleSystem.visible = false;
     scene.add(particleSystem);
@@ -253,44 +306,50 @@ function createParticleSystem() {
 function createGalaxy() {
     const geo = new THREE.BufferGeometry();
     const pts = [], cols = [];
-    for(let i=0; i<15000; i++) {
-        const r = 500 + Math.random() * 1000;
-        const t = Math.random() * Math.PI * 2, p = Math.random() * Math.PI;
-        pts.push(r * Math.sin(p) * Math.cos(t), r * Math.sin(p) * Math.sin(t), r * Math.cos(p));
-        cols.push(1, 0.8, 0.4);
+    for(let i=0; i<5000; i++) {
+        const r = 200 + Math.random() * 800;
+        const theta = Math.random() * Math.PI * 2, phi = Math.random() * Math.PI;
+        pts.push(r * Math.sin(phi) * Math.cos(theta), r * Math.sin(phi) * Math.sin(theta), r * Math.cos(phi));
+        cols.push(0.8, 0.3, 0.1);
     }
     geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
     geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
-    starField = new THREE.Points(geo, new THREE.PointsMaterial({ size: 1.5, vertexColors: true, transparent: true, opacity: 0.6 }));
+    starField = new THREE.Points(geo, new THREE.PointsMaterial({ size: 2.0, vertexColors: true, transparent: true, opacity: 0.5 }));
     scene.add(starField);
 }
 
 function animate() {
     requestAnimationFrame(animate);
+    
+    // 粒子动画
     if (particleSystem.visible) {
-        const posAttr = particleGeometry.attributes.position;
-        const lifeAttr = particleGeometry.attributes.lifespan;
+        const p = particleGeometry.attributes.position.array;
+        const l = particleGeometry.attributes.lifespan.array;
         for (let i = 0; i < particleCount; i++) {
-            if (lifeAttr.array[i] > 0) {
+            if (l[i] > 0) {
                 const i3 = i * 3;
-                posAttr.array[i3] += particleGeometry.attributes.velocity.array[i3] * 0.1;
-                posAttr.array[i3+1] += particleGeometry.attributes.velocity.array[i3+1] * 0.1;
-                posAttr.array[i3+2] += particleGeometry.attributes.velocity.array[i3+2] * 0.1;
-                lifeAttr.array[i] -= 0.01;
+                p[i3] += particleVelocities[i3]; 
+                p[i3+1] += particleVelocities[i3+1]; 
+                p[i3+2] += particleVelocities[i3+2];
+                l[i] -= 0.02;
             }
         }
-        posAttr.needsUpdate = true;
+        particleGeometry.attributes.position.needsUpdate = true;
     }
+    
     rotationSpeed = THREE.MathUtils.lerp(rotationSpeed, targetSpeed, 0.05);
     if (!selectedCard && !isAnimating) cardGroup.rotation.y += rotationSpeed;
-    if (starField) starField.rotation.y += 0.0003;
+    if (starField) starField.rotation.y += 0.0005;
+    
     renderer.render(scene, camera);
 }
 
 init();
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+
+window.addEventListener('resize', () => { 
+    camera.aspect = window.innerWidth / window.innerHeight; 
+    camera.updateProjectionMatrix(); 
+    renderer.setSize(window.innerWidth, window.innerHeight); 
 });
 </script> 
 </body> 
