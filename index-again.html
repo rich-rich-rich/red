@@ -245,7 +245,7 @@ function createParticleSystem() {
     particleGeometry.setAttribute('lifespan', new THREE.BufferAttribute(particleLifespans, 1));
     particleSystem = new THREE.Points(particleGeometry, new THREE.PointsMaterial({
         color: 0xffffff, size: 0.15, transparent: true, blending: THREE.AdditiveBlending
-        map: new THREE.TextureLoader().load('https://threejs.org/examples/textures/sprites/disc.png'),
+        map: new THREE.TextureLoader().load('https://threejs.org/examples/textures/sprites/disc.png')
 
     }));
     particleSystem.visible = false;
