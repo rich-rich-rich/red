@@ -2,39 +2,25 @@
 <html lang="zh-CN">  
 <head>  
     <meta charset="UTF-8">  
-    <title>红色记忆 - 魔法仪式</title>  
+    <title>红色记忆 - 沉浸仪式</title>  
     <style>  
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Optima', 'Georgia', 'Microsoft YaHei', serif; }  
         canvas { display: block; }   
-  
         #ui-layer {  
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);  
             width: 90%; max-width: 800px; color: #fff; text-align: center;  
             pointer-events: none; opacity: 0; z-index: 100;  
         }  
         .card-inner-box {  
-            background: radial-gradient(circle at center, rgba(30, 20, 10, 0.8) 0%, rgba(5, 5, 10, 0.9) 100%);  
-            padding: 50px; border-radius: 30px; border: 1px solid rgba(201, 160, 80, 0.3);  
-            box-shadow: 0 0 100px rgba(0,0,0,0.8), inset 0 0 30px rgba(201, 160, 80, 0.1);  
-            backdrop-filter: blur(20px);  
+            background: radial-gradient(circle at center, rgba(30, 20, 10, 0.85) 0%, rgba(5, 5, 10, 0.95) 100%);  
+            padding: 40px; border-radius: 30px; border: 1px solid rgba(201, 160, 80, 0.3);  
+            box-shadow: 0 0 100px rgba(0,0,0,0.8); backdrop-filter: blur(20px);  
         }  
-        .card-title {  
-            font-size: 3.2em; color: #f3e5ab;  
-            text-shadow: 0 0 10px rgba(255,215,0,0.5), 0 0 30px rgba(255,165,0,0.3);  
-            margin-bottom: 25px; letter-spacing: 12px; font-weight: lighter;  
-        }  
-        .card-sub { font-size: 1.4em; color: #c9a050; font-style: italic; margin-bottom: 20px; }
-        .card-desc {  
-            font-size: 1.2em; line-height: 2; color: #d4d4d4; letter-spacing: 2px;  
-            border-top: 1px solid rgba(201, 160, 80, 0.4); padding-top: 20px; text-align: justify;
-        }  
-  
-        #loading-screen {  
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;  
-            background: #000; z-index: 1000; display: flex; flex-direction: column;  
-            justify-content: center; align-items: center; color: #c9a050;  
-        }  
-        .loader { width: 60px; height: 60px; border: 2px solid #1a1a1a; border-top: 2px solid #c9a050; border-radius: 50%; animation: spin 1.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite; }  
+        .card-title { font-size: 3em; color: #f3e5ab; margin-bottom: 15px; letter-spacing: 10px; }  
+        .card-sub { font-size: 1.3em; color: #c9a050; font-style: italic; margin-bottom: 20px; line-height: 1.4; }
+        .card-desc { font-size: 1.1em; line-height: 1.8; color: #d4d4d4; border-top: 1px solid rgba(201, 160, 80, 0.4); padding-top: 20px; text-align: justify; }  
+        #loading-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #c9a050; }  
+        .loader { width: 50px; height: 50px; border: 2px solid #1a1a1a; border-top: 2px solid #c9a050; border-radius: 50%; animation: spin 1s linear infinite; }  
         @keyframes spin { 100% { transform: rotate(360deg); } }  
     </style>  
 </head>  
@@ -42,13 +28,13 @@
   
 <div id="loading-screen">  
     <div class="loader"></div>  
-    <div style="letter-spacing: 8px; margin-top:20px;">正在连接记忆以太...</div>  
+    <div style="letter-spacing: 6px; margin-top:20px;">正在连接记忆以太...</div>  
 </div>  
   
 <div id="ui-layer">  
     <div class="card-inner-box">  
         <div id="title" class="card-title"></div>  
-        <div id="sub" style="font-size: 1.4em; color: #c9a050; margin-bottom: 20px;"></div>
+        <div id="sub" class="card-sub"></div>
         <div id="desc" class="card-desc"></div>  
     </div>  
 </div>  
@@ -66,7 +52,7 @@ const tarotData = [
     { name: "遵义会议", sub: "“东方欲晓，莫道君行早”——《清平乐·会昌》", desc: "遵义城头，风雨虽急，然灯塔已明，后辈若迷方向，当循此智，而后明辨是非，笃定前行，莫失航标之光。“东方欲晓，莫道君行早”出自毛泽东的《清平乐·会昌》，意思是东方快要亮了，别说你出发得早。遵义会议就像长征路上的“东方欲晓”，为红军指明了方向，后辈若在人生中感到迷茫，也该像我们那时一样，尽早认清方向、坚定前行。" },
     { name: "四渡赤水", sub: "“你打你的，我打我的”——《毛泽东选集》", desc: "四渡赤水时，敌人在后面追，我们忽东忽西，不跟着敌人的节奏走，“以不变应万变”才走出了活路，别被外界的声音打乱脚步，坚持自己的节奏。" },
     { name: "巧渡金沙江", sub: "“兵无常势，水无常形”——《孙子兵法》", desc: "当年金沙江水流湍急，我们趁着夜色用木船悄悄过江，没有硬拼，靠的就是“变”的法子。遇到事情别死脑筋，像我们当年那样，换个角度想办法，路就活了。工作中卡壳了就换个思路，和人打交道遇着坎儿，就换个方式沟通。" },
-    { name: "强渡大渡河", sub: "“为有牺牲多壮志，敢教日月换新天”——《七律·到韶山》", desc: "当年大渡河上，船板被打穿了，战友们用身体堵着漏洞，血混着河水往下淌，可谁也没松手。这“牺牲”不是要你们去拼命，谨记把这份“换新天”的劲儿，用在让日子更样上，把手里的项目做到自己满意，把家里的日子打理的井井有条，让这“新天”里，有光。" },
+    { name: "强渡大渡河", sub: "“为有牺牲多壮志，敢教日月换新天”——《七律·到韶山》", desc: "当年大渡河上，船板被打穿了，战友们用身体堵着漏洞，血混着河水往下淌，可谁也没松手。这“牺牲”不是要你们去拼命，谨记把这份“换新天”的劲儿，用在让日子更像样上，把手里的项目做到自己满意，把家里的日子打理的井井有条，让这“新天”里，有光。" },
     { name: "飞夺泸定桥", sub: "“狭路相逢勇者胜”——《毛泽东选集》", desc: "泸定桥的铁索晃得人心慌，底下是咆哮的河水，我们抓着铁链往前冲。不是蛮干，是明知危险也敢迈出的那一步。生活里总有需要“夺桥”的时刻，别被眼前的险境吓住，像我们当年那样，稳住脚、往前闯。" },
     { name: "翻雪山", sub: "“世上无难事，只要肯攀登”——《水调歌头·重上井冈山》", desc: "翻雪山时，氧气稀薄得喘不上气，我们互相拽着绳子往上走，谁也没丢下谁。遇到难处别自己硬扛，像我们当年那样，和身边人搭把手，可能只是一句鼓励，也能攒着劲儿翻过眼前的雪山。" },
     { name: "过草地", sub: "“行到水穷处，坐看云起时”——《终南别业》", desc: "当年过草地，粮草断绝、泥水没膝，走到实在走不动时，我们就坐在草地上歇一歇，看着天上的云慢慢飘，心想着总会有出路的。“行到水穷处，坐看云起时”出自王维的《终南别业》，意思是走到水流的尽头，看似已无路可走，却能坐下来静静观赏云气升腾。若遇困境，也别慌，停下来喘口气，看看身边的希望，等待新转机。" },
@@ -88,14 +74,7 @@ let scene, camera, renderer, cardGroup, cards = [];
 let lightPoint, particleSystem, starField;
 let raycaster = new THREE.Raycaster();
 let isGrabbing = false, selectedCard = null, isAnimating = false;
-let grabCounter = 0;
-let rotationSpeed = 0.003, targetSpeed = 0.003;
-
-const particleCount = 800; 
-const particleGeometry = new THREE.BufferGeometry();
-const particlePositions = new Float32Array(particleCount * 3);
-const particleVelocities = new Float32Array(particleCount * 3);
-const particleLifespans = new Float32Array(particleCount);
+let grabCounter = 0, rotationSpeed = 0.003, targetSpeed = 0.003;
 
 function loadTexture(url) {
     const loader = new THREE.TextureLoader();
@@ -106,35 +85,29 @@ function loadTexture(url) {
 async function init() {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-    // 严格保持你的轴心坐标：相机在 0
-    camera.position.set(0, 0, 0);
+    camera.position.set(0, 0, 0); // 人在原点
 
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
     document.body.appendChild(renderer.domElement);
 
     createGalaxy();
     createParticleSystem();
     createTarotRing();
 
-    lightPoint = new THREE.Mesh(new THREE.SphereGeometry(0.12, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffd700 }));
-    const pLight = new THREE.PointLight(0xffaa00, 3, 20);
-    lightPoint.add(pLight);
+    lightPoint = new THREE.Mesh(new THREE.SphereGeometry(0.12), new THREE.MeshBasicMaterial({ color: 0xffd700 }));
     scene.add(lightPoint);
-
     scene.add(new THREE.AmbientLight(0xffffff, 1.2));
 
     await initHandTracking();
-    gsap.to('#loading-screen', { opacity: 0, duration: 1, onComplete: () => document.getElementById('loading-screen').remove() });
+    gsap.to('#loading-screen', { opacity: 0, duration: 1.5, onComplete: () => document.getElementById('loading-screen').remove() });
     animate();
 }
 
 function createTarotRing() {
     cardGroup = new THREE.Group();
     scene.add(cardGroup);
-    // 严格保持你的半径 28
     const radius = 28;
     const cardGeo = new THREE.BoxGeometry(6, 9.75, 0.15);
     const backTex = loadTexture('back');
@@ -146,46 +119,20 @@ function createTarotRing() {
             new THREE.MeshStandardMaterial({ color: 0x000 }),
             new THREE.MeshStandardMaterial({ color: 0x000 }),
             new THREE.MeshStandardMaterial({ color: 0x000 }),
-            new THREE.MeshStandardMaterial({ map: loadTexture(data.name), roughness: 0.2, metalness: 0.1 }),
-            new THREE.MeshStandardMaterial({ map: backTex, roughness: 0.3, metalness: 0.2 })
+            new THREE.MeshStandardMaterial({ map: loadTexture(data.name) }), // 正面
+            new THREE.MeshStandardMaterial({ map: backTex }) // 背面
         ];
-
         const card = new THREE.Mesh(cardGeo, mats);
         card.position.set(Math.sin(angle) * radius, 0, Math.cos(angle) * radius);
-        card.lookAt(0, 0, 0);
-        card.rotateY(Math.PI);
-
+        
+        // 关键逻辑：让卡牌背面朝向原点（你的眼睛）
+        card.lookAt(0, 0, 0); 
+        // 此时正面朝外，背面朝内，符合“看光”之前的状态
+        
         card.userData = { angle: angle, info: data };
         cards.push(card);
         cardGroup.add(card);
     });
-}
-
-function createParticleSystem() {
-    particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-    particleGeometry.setAttribute('velocity', new THREE.BufferAttribute(particleVelocities, 3));
-    particleGeometry.setAttribute('lifespan', new THREE.BufferAttribute(particleLifespans, 1));
-
-    particleSystem = new THREE.Points(particleGeometry, new THREE.PointsMaterial({
-        color: 0xffffff, size: 0.2, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
-    }));
-    particleSystem.visible = false;
-    scene.add(particleSystem);
-}
-
-function createGalaxy() {
-    const geo = new THREE.BufferGeometry();
-    const pts = [], colors = [];
-    for(let i=0; i<20000; i++) {
-        const r = 600 + Math.random() * 1400; 
-        const theta = Math.random() * Math.PI * 2, phi = Math.random() * Math.PI;
-        pts.push(r * Math.sin(phi) * Math.cos(theta), r * Math.sin(phi) * Math.sin(theta), r * Math.cos(phi));
-        colors.push(0.5, 0.3, 0.9);
-    }
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    starField = new THREE.Points(geo, new THREE.PointsMaterial({ size: 2.5, vertexColors: true, transparent: true, opacity: 0.7 }));
-    scene.add(starField);
 }
 
 function tryGrab() {
@@ -203,9 +150,10 @@ function tryGrab() {
         document.getElementById('sub').innerText = selectedCard.userData.info.sub;
         document.getElementById('desc').innerText = selectedCard.userData.info.desc;
 
+        // 抽取动画：拉近并翻转 Y 轴，展示正面
         gsap.timeline({ onComplete: () => { isAnimating = false; } })
-        .to(selectedCard.position, { x: 0, y: 1.5, z: -10, duration: 1.5, ease: "expo.out" }, 0)
-        .to(selectedCard.rotation, { x: 0.3, y: 0, z: 0, duration: 1.5, ease: "expo.out" }, 0)
+        .to(selectedCard.position, { x: 0, y: 1.2, z: -12, duration: 1.5, ease: "power2.out" }, 0)
+        .to(selectedCard.rotation, { x: 0.2, y: Math.PI, z: 0, duration: 1.5, ease: "power2.out" }, 0)
         .to('#ui-layer', { opacity: 1, duration: 0.8 }, 0.6);
     }
 }
@@ -215,88 +163,76 @@ function tryRelease() {
     isAnimating = true;
     gsap.to('#ui-layer', { opacity: 0, duration: 0.4 });
 
-    const startPos = selectedCard.position.clone();
-    const startRot = selectedCard.rotation.clone();
-    selectedCard.visible = false; 
+    // 粒子爆发
     particleSystem.visible = true;
-    particleSystem.material.opacity = 1;
-
-    const posAttr = particleGeometry.attributes.position;
-    const velAttr = particleGeometry.attributes.velocity;
-    const lifeAttr = particleGeometry.attributes.lifespan;
-
+    const pos = particleGeometry.attributes.position.array;
+    const life = particleGeometry.attributes.lifespan.array;
     for (let i = 0; i < particleCount; i++) {
-        const i3 = i * 3;
-        posAttr.array[i3] = startPos.x; posAttr.array[i3+1] = startPos.y; posAttr.array[i3+2] = startPos.z;
-        const speed = 0.8 + Math.random() * 2.5;
-        velAttr.array[i3] = (Math.random()-0.5)*speed; velAttr.array[i3+1] = (Math.random()-0.5)*speed; velAttr.array[i3+2] = (Math.random()-0.5)*speed + 2;
-        lifeAttr.array[i] = 1.0;
+        pos[i*3] = selectedCard.position.x; pos[i*3+1] = selectedCard.position.y; pos[i*3+2] = selectedCard.position.z;
+        life[i] = 1.0;
     }
-    posAttr.needsUpdate = true; velAttr.needsUpdate = true; lifeAttr.needsUpdate = true;
-
-    gsap.to(particleSystem.material, { opacity: 0, duration: 1.5, onComplete: () => { particleSystem.visible = false; isAnimating = false; } });
 
     const angle = selectedCard.userData.angle;
     const tempCard = selectedCard;
     selectedCard = null;
-    setTimeout(() => {
+
+    gsap.to(tempCard.scale, { x: 0, y: 0, z: 0, duration: 0.5, onComplete: () => {
         cardGroup.attach(tempCard);
         tempCard.position.set(Math.sin(angle)*28, 0, Math.cos(angle)*28);
-        tempCard.lookAt(0,0,0); tempCard.rotateY(Math.PI);
-        tempCard.visible = true; tempCard.scale.set(0,0,0);
-        gsap.to(tempCard.scale, { x:1, y:1, z:1, duration: 0.8 });
-    }, 1600);
+        tempCard.lookAt(0,0,0);
+        tempCard.scale.set(1, 1, 1);
+        isAnimating = false;
+        particleSystem.visible = false;
+    }});
+}
+
+function createGalaxy() {
+    const geo = new THREE.BufferGeometry();
+    const pts = [];
+    for(let i=0; i<15000; i++) {
+        const r = 500 + Math.random() * 1000;
+        const t = Math.random() * Math.PI * 2, p = Math.random() * Math.PI;
+        pts.push(r * Math.sin(p) * Math.cos(t), r * Math.sin(p) * Math.sin(t), r * Math.cos(p));
+    }
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    starField = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x666666, size: 2 }));
+    scene.add(starField);
+}
+
+function createParticleSystem() {
+    particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    particleGeometry.setAttribute('lifespan', new THREE.BufferAttribute(particleLifespans, 1));
+    particleSystem = new THREE.Points(particleGeometry, new THREE.PointsMaterial({ color: 0xffd700, size: 0.3, transparent: true }));
+    particleSystem.visible = false;
+    scene.add(particleSystem);
 }
 
 async function initHandTracking() {
-    // 改为本地路径
-    const hands = new Hands({ locateFile: (file) => `./${file}` });
-    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.8, minTrackingConfidence: 0.8 });
-    hands.onResults(results => {
-        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            const pts = results.multiHandLandmarks[0];
-            const x = (0.5 - pts[8].x) * 2.5, y = (0.5 - pts[8].y) * 2;
-            targetSpeed = x * 0.06;
-            // 严格对齐你的交互距离
-            lightPoint.position.lerp(new THREE.Vector3(x * 6, y * 5, -8), 0.2);
-            const d = Math.hypot(pts[4].x - pts[8].x, pts[4].y - pts[8].y);
-            if (d < 0.06) {
-                grabCounter++;
-                if (grabCounter > 5 && !isGrabbing && !isAnimating) { tryGrab(); isGrabbing = true; }
-            } else if (d > 0.12) {
-                grabCounter = 0;
-                if (isGrabbing && !isAnimating) { tryRelease(); isGrabbing = false; }
-            }
+    const hands = new Hands({ locateFile: (f) => `./${f}` });
+    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.8 });
+    hands.onResults(res => {
+        if (res.multiHandLandmarks && res.multiHandLandmarks[0]) {
+            const p = res.multiHandLandmarks[0];
+            const x = (0.5 - p[8].x) * 15, y = (0.5 - p[8].y) * 12;
+            targetSpeed = (0.5 - p[8].x) * 0.08;
+            lightPoint.position.lerp(new THREE.Vector3(x, y, -15), 0.2);
+            const d = Math.hypot(p[4].x - p[8].x, p[4].y - p[8].y);
+            if (d < 0.05 && !isGrabbing && !isAnimating) { tryGrab(); isGrabbing = true; }
+            else if (d > 0.12 && isGrabbing) { tryRelease(); isGrabbing = false; }
         }
     });
     const video = document.getElementById('video-input');
-    const cam = new Camera(video, { onFrame: async () => { await hands.send({ image: video }); }, width: 640, height: 480 });
-    cam.start();
+    new Camera(video, { onFrame: async () => await hands.send({ image: video }), width: 640, height: 480 }).start();
 }
 
 function animate() {
     requestAnimationFrame(animate);
-    if (particleSystem.visible) {
-        const posAttr = particleGeometry.attributes.position;
-        const lifeAttr = particleGeometry.attributes.lifespan;
-        for (let i = 0; i < particleCount; i++) {
-            if (lifeAttr.array[i] > 0) {
-                const i3 = i * 3;
-                posAttr.array[i3] += particleGeometry.attributes.velocity.array[i3] * 0.1;
-                posAttr.array[i3+1] += particleGeometry.attributes.velocity.array[i3+1] * 0.1;
-                posAttr.array[i3+2] += particleGeometry.attributes.velocity.array[i3+2] * 0.1;
-                lifeAttr.array[i] -= 0.008;
-            }
-        }
-        posAttr.needsUpdate = true;
-    }
     rotationSpeed = THREE.MathUtils.lerp(rotationSpeed, targetSpeed, 0.05);
     if (!selectedCard && !isAnimating) cardGroup.rotation.y += rotationSpeed;
-    if (starField) starField.rotation.y += 0.0003;
     renderer.render(scene, camera);
 }
 init();
-window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+window.addEventListener('resize', () => { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
 </script> 
 </body> 
 </html>
